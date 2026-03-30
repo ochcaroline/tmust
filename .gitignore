@@ -34,3 +34,5 @@ go.work.sum
 # build output
 tmust
 bin/
+# Added by goreleaser init:
+dist/

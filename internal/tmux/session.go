@@ -54,7 +54,7 @@ func FindByDir(dir string) (string, error) {
 	if err != nil {
 		return "", nil // no server running — not an error
 	}
-	for _, line := range strings.Split(strings.TrimSpace(string(out)), "\n") {
+	for line := range strings.SplitSeq(strings.TrimSpace(string(out)), "\n") {
 		parts := strings.SplitN(line, "\t", 2)
 		if len(parts) == 2 && parts[1] == dir {
 			return parts[0], nil
