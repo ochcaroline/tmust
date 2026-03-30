@@ -9,17 +9,40 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var killCurrent bool
+
 var killCmd = &cobra.Command{
 	Use:     "kill [session]",
 	Aliases: []string{"k"},
 	Short:   "Kill a tmux session",
 	Args:    cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if killCurrent {
+			return killCurrentSession()
+		}
 		if len(args) == 1 {
 			return killByName(args[0])
 		}
 		return killInteractive()
 	},
+}
+
+func init() {
+	killCmd.Flags().BoolVar(&killCurrent, "current", false, "kill the current session and switch to the most recent one")
+}
+
+// killCurrentSession switches to the last session first, then kills the one we
+// just left. The order matters: killing first would drop us out of tmux if
+// detach-on-destroy is not set.
+func killCurrentSession() error {
+	name, err := tmux.CurrentSession()
+	if err != nil {
+		return err
+	}
+	if err := tmux.SwitchToLast(); err != nil {
+		return fmt.Errorf("no other session to switch to: %w", err)
+	}
+	return killByName(name)
 }
 
 func killByName(name string) error {

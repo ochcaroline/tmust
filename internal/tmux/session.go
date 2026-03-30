@@ -80,7 +80,24 @@ func AttachOrCreate(name, dir string) error {
 	return Attach(name)
 }
 
-// SanitizeName returns a tmux-safe session name derived from s.
+// CurrentSession returns the name of the tmux session the current client is
+// attached to. Returns an error when not inside tmux.
+func CurrentSession() (string, error) {
+	if os.Getenv("TMUX") == "" {
+		return "", fmt.Errorf("not inside a tmux session")
+	}
+	out, err := exec.Command("tmux", "display-message", "-p", "#S").Output()
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(out)), nil
+}
+
+// SwitchToLast switches the current client to the most recently used session.
+func SwitchToLast() error {
+	return exec.Command("tmux", "switch-client", "-l").Run()
+}
+
 func SanitizeName(s string) string {
 	return strings.NewReplacer(".", "_", ":", "_", " ", "_").Replace(s)
 }
