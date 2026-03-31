@@ -10,6 +10,7 @@ import (
 )
 
 var killCurrent bool
+var killQuiet bool
 
 var killCmd = &cobra.Command{
 	Use:     "kill [session]",
@@ -29,6 +30,7 @@ var killCmd = &cobra.Command{
 
 func init() {
 	killCmd.Flags().BoolVar(&killCurrent, "current", false, "kill the current session and switch to the most recent one")
+	killCmd.Flags().BoolVarP(&killQuiet, "quiet", "q", false, "suppress output (useful for tmux key bindings)")
 }
 
 // killCurrentSession switches to the last session first, then kills the one we
@@ -49,7 +51,9 @@ func killByName(name string) error {
 	if err := tmux.Kill(name); err != nil {
 		return fmt.Errorf("failed to kill session %q: %w", name, err)
 	}
-	fmt.Printf("killed session: %s\n", name)
+	if !killQuiet {
+		fmt.Printf("killed session: %s\n", name)
+	}
 	return nil
 }
 
