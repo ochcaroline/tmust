@@ -10,7 +10,7 @@ import (
 // Returns ("", nil) when the user cancels (exit code 130).
 func Pick(input, prompt string) (string, error) {
 	cmd := exec.Command("fzf",
-		"--height=40%",
+		"--height=80%",
 		"--reverse",
 		"--border",
 		"--prompt="+prompt,
