@@ -25,7 +25,20 @@ tmust attach <name>     attach to a named session directly
 tmust ls                list active sessions
 tmust kill              pick a session via fzf and kill it
 tmust kill <name>       kill a named session directly
+tmust worktree new      pick a zoxide repo, enter a branch, and create a four-window worktree session
+tmust worktree end      end a worktree session, confirm if changes exist
 ```
+
+Add these bindings to `~/.tmux.conf` for `<prefix>wc` and `<prefix>wX`:
+
+```tmux
+bind-key w switch-client -T worktree
+bind-key -T worktree c display-popup -E -w 80% -h 80% "tmust worktree new"
+bind-key -T worktree X display-popup -E -w 80% -h 80% "tmust worktree end"
+```
+
+Ending a worktree removes it. If it has uncommitted changes, tmust asks for
+confirmation first.
 
 When tmust is run from inside an existing tmux session it uses `switch-client`
 instead of `attach-session`, so you stay inside tmux at all times.

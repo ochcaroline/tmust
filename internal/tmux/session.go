@@ -26,6 +26,20 @@ func Create(name, dir string) error {
 	return exec.Command("tmux", "new-session", "-d", "-s", name, "-c", dir).Run()
 }
 
+// CreateWorktreeSession creates the standard four-window worktree session.
+func CreateWorktreeSession(name, dir string) error {
+	if err := exec.Command("tmux", "new-session", "-d", "-s", name, "-n", "nvim", "-c", dir, "nvim", ".").Run(); err != nil {
+		return err
+	}
+	for _, window := range []string{"backend", "frontend", "ai"} {
+		if err := exec.Command("tmux", "new-window", "-t", name, "-n", window, "-c", dir).Run(); err != nil {
+			_ = Kill(name)
+			return err
+		}
+	}
+	return nil
+}
+
 // Kill terminates the named session.
 func Kill(name string) error {
 	return exec.Command("tmux", "kill-session", "-t", name).Run()
@@ -61,6 +75,15 @@ func FindByDir(dir string) (string, error) {
 		}
 	}
 	return "", nil
+}
+
+// SessionDir returns the directory a session was created in.
+func SessionDir(name string) (string, error) {
+	out, err := exec.Command("tmux", "display-message", "-p", "-t", name, "#{session_path}").Output()
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(out)), nil
 }
 
 // AttachOrCreate attaches to an existing session or creates one rooted at dir.
