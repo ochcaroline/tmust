@@ -67,34 +67,35 @@ func createWorktree(args []string) error {
 	}
 	name := tmux.SanitizeName(filepath.Base(repo) + "-" + branch)
 	if tmux.Exists(name) {
-		return fmt.Errorf("tmux session already exists: %s", name)
+		return tmux.Attach(name)
 	}
 
 	worktree := filepath.Join(repo, ".worktrees", filepath.FromSlash(branch))
-	if _, err := os.Stat(worktree); err == nil {
-		return fmt.Errorf("worktree already exists: %s", worktree)
-	}
-	if err := os.MkdirAll(filepath.Dir(worktree), 0o755); err != nil {
-		return err
-	}
+	if _, err := os.Stat(worktree); os.IsNotExist(err) {
+		if err := os.MkdirAll(filepath.Dir(worktree), 0o755); err != nil {
+			return err
+		}
 
-	argsGit := []string{"worktree", "add"}
-	if ref, ok := branchRef(repo, branch); ok {
-		if strings.HasPrefix(ref, "refs/remotes/") {
-			argsGit = append(argsGit, "-b", branch, worktree, ref)
+		argsGit := []string{"worktree", "add"}
+		if ref, ok := branchRef(repo, branch); ok {
+			if strings.HasPrefix(ref, "refs/remotes/") {
+				argsGit = append(argsGit, "-b", branch, worktree, ref)
+			} else {
+				argsGit = append(argsGit, worktree, ref)
+			}
 		} else {
-			argsGit = append(argsGit, worktree, ref)
+			argsGit = append(argsGit, "-b", branch, worktree, "HEAD")
 		}
-	} else {
-		argsGit = append(argsGit, "-b", branch, worktree, "HEAD")
-	}
-	if err := runGit(repo, argsGit...); err != nil {
-		return fmt.Errorf("create worktree: %w", err)
-	}
-	if _, err := os.Stat(filepath.Join(repo, ".env")); err == nil {
-		if err := copyFile(filepath.Join(repo, ".env"), filepath.Join(worktree, ".env")); err != nil {
-			return fmt.Errorf("copy .env: %w", err)
+		if err := runGit(repo, argsGit...); err != nil {
+			return fmt.Errorf("create worktree: %w", err)
 		}
+		if _, err := os.Stat(filepath.Join(repo, ".env")); err == nil {
+			if err := copyFile(filepath.Join(repo, ".env"), filepath.Join(worktree, ".env")); err != nil {
+				return fmt.Errorf("copy .env: %w", err)
+			}
+		}
+	} else if err != nil {
+		return err
 	}
 
 	if err := tmux.CreateWorktreeSession(name, worktree); err != nil {
