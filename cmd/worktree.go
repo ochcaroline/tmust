@@ -70,7 +70,7 @@ func createWorktree(args []string) error {
 		return tmux.Attach(name)
 	}
 
-	worktree := filepath.Join(repo, ".worktrees", filepath.FromSlash(branch))
+	worktree := filepath.Join(repo, ".worktrees", strings.ReplaceAll(branch, "/", "-"))
 	if _, err := os.Stat(worktree); os.IsNotExist(err) {
 		if err := os.MkdirAll(filepath.Dir(worktree), 0o755); err != nil {
 			return err
