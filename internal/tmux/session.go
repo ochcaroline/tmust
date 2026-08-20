@@ -18,7 +18,7 @@ func List() (string, error) {
 
 // Exists reports whether a session with the given name is active.
 func Exists(name string) bool {
-	return exec.Command("tmux", "has-session", "-t", name).Run() == nil
+	return exec.Command("tmux", "has-session", "-t", "="+name).Run() == nil
 }
 
 // Create starts a new detached session named name with working directory dir.
