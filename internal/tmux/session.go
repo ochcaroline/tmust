@@ -32,7 +32,7 @@ func CreateWorktreeSession(name, dir string) error {
 		return err
 	}
 	for _, window := range []string{"backend", "frontend", "ai"} {
-		if err := exec.Command("tmux", "new-window", "-t", name, "-n", window, "-c", dir).Run(); err != nil {
+		if err := exec.Command("tmux", "new-window", "-t", "="+name, "-n", window, "-c", dir).Run(); err != nil {
 			_ = Kill(name)
 			return err
 		}
@@ -42,7 +42,7 @@ func CreateWorktreeSession(name, dir string) error {
 
 // Kill terminates the named session.
 func Kill(name string) error {
-	return exec.Command("tmux", "kill-session", "-t", name).Run()
+	return exec.Command("tmux", "kill-session", "-t", "="+name).Run()
 }
 
 // Attach attaches to the named session.
@@ -50,9 +50,9 @@ func Kill(name string) error {
 func Attach(name string) error {
 	var cmd *exec.Cmd
 	if os.Getenv("TMUX") != "" {
-		cmd = exec.Command("tmux", "switch-client", "-t", name)
+		cmd = exec.Command("tmux", "switch-client", "-t", "="+name)
 	} else {
-		cmd = exec.Command("tmux", "attach-session", "-t", name)
+		cmd = exec.Command("tmux", "attach-session", "-t", "="+name)
 	}
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
@@ -79,7 +79,7 @@ func FindByDir(dir string) (string, error) {
 
 // SessionDir returns the directory a session was created in.
 func SessionDir(name string) (string, error) {
-	out, err := exec.Command("tmux", "display-message", "-p", "-t", name, "#{session_path}").Output()
+	out, err := exec.Command("tmux", "display-message", "-p", "-t", "="+name, "#{session_path}").Output()
 	if err != nil {
 		return "", err
 	}
