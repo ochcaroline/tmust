@@ -104,3 +104,21 @@ func Jump(a Agent) error {
 	}
 	return Attach(a.Session)
 }
+
+var workingMarkers = map[string]string{
+	"claude":     "esc to interrupt",
+	"opencode":   "esc interrupt",
+	"gh copilot": "esc to cancel",
+}
+
+// Working reports whether the bottom of the visible pane shows the agent's "busy" hint.
+// Screen scraping: markers are tied to each agent's current UI text.
+func Working(a Agent) bool {
+	out, err := exec.Command("tmux", "capture-pane", "-p", "-t", a.Pane).Output()
+	if err != nil {
+		return false
+	}
+	lines := strings.Split(strings.TrimRight(string(out), " \n"), "\n")
+	lines = lines[max(0, len(lines)-4):]
+	return strings.Contains(strings.ToLower(strings.Join(lines, "\n")), workingMarkers[a.Name])
+}
