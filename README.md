@@ -27,6 +27,13 @@ tmust kill              pick a session via fzf and kill it
 tmust kill <name>       kill a named session directly
 tmust worktree new      pick a zoxide repo, enter a branch, and create a four-window worktree session
 tmust worktree end      end a worktree session, confirm if changes exist
+tmust agents            list running agents (claude, opencode, gh copilot) in any pane and jump to one
+```
+
+Popup binding for the agent list:
+
+```tmux
+bind-key A display-popup -E -w 80% -h 70% "tmust agents"
 ```
 
 Add these bindings to `~/.tmux.conf` for `<prefix>wc` and `<prefix>wX`:
