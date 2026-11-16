@@ -79,11 +79,17 @@ func FindByDir(dir string) (string, error) {
 
 // SessionDir returns the directory a session was created in.
 func SessionDir(name string) (string, error) {
-	out, err := exec.Command("tmux", "display-message", "-p", "-t", "="+name, "#{session_path}").Output()
+	out, err := exec.Command("tmux", "list-sessions", "-F", "#{session_name}\t#{session_path}").Output()
 	if err != nil {
 		return "", err
 	}
-	return strings.TrimSpace(string(out)), nil
+	for line := range strings.SplitSeq(strings.TrimSpace(string(out)), "\n") {
+		parts := strings.SplitN(line, "\t", 2)
+		if len(parts) == 2 && parts[0] == name {
+			return parts[1], nil
+		}
+	}
+	return "", fmt.Errorf("session %q not found", name)
 }
 
 // AttachOrCreate attaches to an existing session or creates one rooted at dir.
@@ -122,5 +128,5 @@ func SwitchToLast() error {
 }
 
 func SanitizeName(s string) string {
-	return strings.NewReplacer(".", "_", ":", "_", " ", "_").Replace(s)
+	return strings.NewReplacer(".", "_", ":", "_", "/", "_", " ", "_").Replace(s)
 }
