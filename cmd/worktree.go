@@ -94,6 +94,9 @@ func createWorktree(args []string) error {
 				return fmt.Errorf("copy .env: %w", err)
 			}
 		}
+		if err := configureWorktreeBranch(repo, worktree, branch); err != nil {
+			return fmt.Errorf("configure worktree branch: %w", err)
+		}
 	} else if err != nil {
 		return err
 	}
@@ -198,6 +201,16 @@ func runGit(repo string, args ...string) error {
 	cmd := exec.Command("git", append([]string{"-C", repo}, args...)...)
 	cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
 	return cmd.Run()
+}
+
+func configureWorktreeBranch(repo, worktree, branch string) error {
+	if _, err := gitOutput(repo, "remote", "get-url", "origin"); err != nil {
+		return nil
+	}
+	if err := runGit(worktree, "config", "branch."+branch+".remote", "origin"); err != nil {
+		return err
+	}
+	return runGit(worktree, "config", "branch."+branch+".merge", "refs/heads/"+branch)
 }
 
 func copyFile(src, dst string) error {
